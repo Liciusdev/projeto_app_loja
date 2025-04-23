@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:projeto_app_loja/models/product_model.dart';
 import 'package:projeto_app_loja/services/api_services.dart';
+import '../../blocs/products/products_bloc.dart';
+import '../../blocs/products/products_event.dart';
+import '../../blocs/products/products_state.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -9,9 +13,27 @@ class ProductsScreen extends StatefulWidget {
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
 class _ProductsScreenState extends State<ProductsScreen> {
+  late ProductsBloc _productsBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _productsBloc = ProductsBloc()..add(FetchProducts());
+    _productsBloc.add(FetchProducts());
+  }
+
+  @override
+  void dispose() {
+    _productsBloc.close();
+    super.dispose();
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocProvider.value(
+      value: _productsBloc,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Produtos'),
         actions: [
@@ -23,17 +45,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
         ],
       ),
-      body: FutureBuilder<List<Product>>(
-        future: ApiServices.fetchProducts(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: BlocBuilder<ProductsBloc, ProductsState>(
+        builder: (context, state) {
+          if (state is ProductsLoading) {
           return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Erro: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('Nenhum produto encontrado'));
-        } else {
-          final products = snapshot.data!;
+        } else if (state is ProductsError) {
+          return Center(child: Text('Erro: ${state.message}'));
+        } else if(state is ProductsLoaded) {
+          final products = state.products;
           return ListView.builder(
             itemCount: products.length,
             itemBuilder: (context, index) {
@@ -48,13 +67,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 title: Text(product.title ?? 'Título indisponível'),
                 subtitle: Text('R\$ ${product.price?.toStringAsFixed(2) ?? '0.00'}'),
                 onTap: () {
-                  Navigator.pushNamed(context, '/product', arguments: product);
+                  Navigator.pushNamed(context, '/product_details', arguments: product);
                 },
               );
             },
           );
         }
+        return const SizedBox.shrink(); // Add a fallback widget
       }),
+    ),
     );
   }
 }

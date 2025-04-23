@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'routes/app_routes.dart';
+import 'package:projeto_app_loja/models/product_model.dart';
+import 'screens/products/product_detail_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -17,7 +19,14 @@ class MainApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: AppRoutes.routes,
-      // Removed the home property to avoid conflict with initialRoute
+      onGenerateRoute: (settings) {
+        if (settings.name == AppRoutes.productDetail){
+          final product = settings.arguments as Product;
+          return MaterialPageRoute(
+            builder: (_) => ProductDetailScreen(product: product),
+          );
+        }
+      },
     );
   }
 }
