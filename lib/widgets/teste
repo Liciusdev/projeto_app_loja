@@ -1,0 +1,103 @@
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+
+import '../models/product_model.dart';
+import '../blocs/products/recommended_products_state.dart';
+import '../blocs/products/recommended_products_bloc.dart';
+
+
+
+class RecommendedProducts extends StatefulWidget {
+final String category;
+final int currentProductId;
+
+  const RecommendedProducts({
+    super.key,
+    required this.category,
+    required this.currentProductId,
+  });
+
+  @override
+  State<RecommendedProducts> createState() => _RecommendedProductsState();
+}
+
+
+
+class _RecommendedProductsState extends State<RecommendedProducts> {
+  List<Product> recommendedProducts = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchRecommendedProducts();
+  }
+
+
+  Future<void> fetchRecommendedProducts() async {
+    final url = Uri.parse('https://fakestoreapi.com/products/category/${widget.category}');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      final filter = data.map((json) => Product.fromJson(json)).where((product) => product.id != widget.currentProductId).toList();
+
+      setState(() {
+        recommendedProducts = filter;
+        _isLoading = false;
+      });
+    } else {
+      throw Exception('Falha ao carregar produtos recomendados');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Produtos Recomendados',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                  height: 150,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: recommendedProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = recommendedProducts[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/product_details', arguments: product);
+                        },
+                        child: Card(
+                          child: Column(
+                            children: [
+                              Image.network(product.imageUrl ?? 'https://via.placeholder.com/150',
+                                height: 50,
+                                width: 50,
+                                fit: BoxFit.contain,
+                              ),
+                              Text(product.title ?? 'Produto sem título'),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          );
+    }
+  }

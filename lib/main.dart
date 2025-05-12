@@ -26,6 +26,7 @@ class MainApp extends StatelessWidget {
             builder: (_) => ProductDetailScreen(product: product),
           );
         }
+        return null;
       },
     );
   }

@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
 import '../../models/product_model.dart';
-
+import '../../widgets/recommended_products.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
   const ProductDetailScreen({super.key, required this.product});
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title:Text(product.title ?? 'Produto Detalhes'),
-      ),
-      body:  Center(
+      appBar: AppBar(title: Text(product.title ?? 'Produto Detalhes')),
+      body: Center(
         child: Column(
           children: [
             Image.network(
               product.imageUrl ?? 'https://via.placeholder.com/150',
               height: 200,
-              fit:BoxFit.contain,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 16),
             Text(
@@ -32,19 +30,27 @@ class ProductDetailScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
+            RecommendedProducts(
+              category: product.category ?? 'Categoria indisponível',
+              currentProductId: product.id ?? 0,
+            ),
             const Spacer(),
             ElevatedButton.icon(
               onPressed: () {
-                // Adicionar ao carrinho
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Produto adicionado ao carrinho')),
+                  const SnackBar(
+                    content: Text('Produto adicionado ao carrinho'),
+                  ),
                 );
               },
-             icon: const Icon(Icons.add_shopping_cart),
+              icon: const Icon(Icons.add_shopping_cart),
               label: const Text('Adicionar ao carrinho'),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 backgroundColor: Colors.blue,
                 textStyle: const TextStyle(fontSize: 16),
               ),
@@ -54,6 +60,4 @@ class ProductDetailScreen extends StatelessWidget {
       ),
     );
   }
-  
 }
-
